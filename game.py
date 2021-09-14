@@ -28,7 +28,7 @@ class Game(object):
     def __init__(self):
         self.font = pygame.font.Font(None, 40)
         # Create the player
-        self.player = Player(32, 128, "player.png")
+        self.player = Player(32, 128, "pictures/player.png")
         # Create a group for the blocks
         self.blocks_group = pygame.sprite.Group()
         # Create a group for the food

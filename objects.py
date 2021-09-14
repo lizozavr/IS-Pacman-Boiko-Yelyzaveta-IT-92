@@ -59,7 +59,7 @@ class Ghost(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         # image of ghost
-        self.image = pygame.image.load("Ghost.png").convert_alpha()
+        self.image = pygame.image.load("pictures/Ghost.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
