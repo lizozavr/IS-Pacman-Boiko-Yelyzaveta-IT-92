@@ -88,7 +88,7 @@ class Game(object):
     def logic(self):
         if not self.game_over:
             self.player.update(self.blocks_group)
-            # detecting colide with ghost or food
+            # detecting collide with ghost or food
             block_hit_list = pygame.sprite.spritecollide(self.player, self.dots_group, True)
             block_hit_list = pygame.sprite.spritecollide(self.player, self.enemies, False)
             if len(block_hit_list) > 0:
@@ -110,12 +110,12 @@ class Game(object):
         screen.blit(self.player.image, self.player.rect)
         # call algorithms
 
-        dfsPath = findPathDFS(grid, 2, 0, 12, 10)
-        for p in dfsPath:
-            pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))
-        pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
-        pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
-
+        # dfsPath = findPathDFS(grid, 2, 0, 12, 10)
+        # for p in dfsPath:
+        #     pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))
+        # pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
+        # pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
+        #
         # bfsPath = findPathBFS(grid, 2, 0, 12, 10)
         # for p in bfsPath:
         #     pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))

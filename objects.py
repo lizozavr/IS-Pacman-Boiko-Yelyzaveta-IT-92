@@ -69,19 +69,19 @@ def draw_enviroment(screen):
     for i, row in enumerate(grid):
         for j, item in enumerate(row):
             if item == 1:
-                if (j + 1 < envwidth and grid[i][j + 1] == 0):
+                if j + 1 < envwidth and grid[i][j + 1] == 0:
                     pygame.draw.line(screen, BLUE, [j * 32 + 32, i * 32 + 32], [j * 32 + 32, i * 32], 3)
-                elif (j + 1 == envwidth):
+                elif j + 1 == envwidth:
                     pygame.draw.line(screen, BLUE, [j * 32 + 32, i * 32 + 32], [j * 32 + 32, i * 32], 3)
-                if (grid[i][j - 1] == 0):
+                if grid[i][j - 1] == 0:
                     pygame.draw.line(screen, BLUE, [j * 32, i * 32], [j * 32, i * 32 + 32], 3)
-                elif (j == 0):
+                elif j == 0:
                     pygame.draw.line(screen, BLUE, [j * 32, i * 32], [j * 32, i * 32 + 32], 3)
-                if (i + 1 < envhight and grid[i + 1][j] == 0):
+                if i + 1 < envhight and grid[i + 1][j] == 0:
                     pygame.draw.line(screen, BLUE, [j * 32 + 32, i * 32 + 32], [j * 32, i * 32 + 32], 3)
-                elif (i + 1 == envhight):
+                elif i + 1 == envhight:
                     pygame.draw.line(screen, BLUE, [j * 32 + 32, i * 32 + 32], [j * 32, i * 32 + 32], 3)
-                if (grid[i - 1][j] == 0):
+                if grid[i - 1][j] == 0:
                     pygame.draw.line(screen, BLUE, [j * 32, i * 32], [j * 32 + 32, i * 32], 3)
-                elif (i == 0):
+                elif i == 0:
                     pygame.draw.line(screen, BLUE, [j * 32, i * 32], [j * 32 + 32, i * 32], 3)
