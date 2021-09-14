@@ -5,7 +5,7 @@ SCREEN_HEIGHT = 544
 
 # Define some colors
 BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
+BLUE = (51, 51, 255)
 
 # game field
 grid = ((1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,),
