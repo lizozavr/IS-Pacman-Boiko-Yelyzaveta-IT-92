@@ -1,6 +1,9 @@
 import pygame
 from objects import *
 from datetime import datetime
+import sys
+from game import *
+import random
 
 
 def findPathBFS(maze, startx, starty, endx, endy):
@@ -39,8 +42,6 @@ def findPathBFS(maze, startx, starty, endx, endy):
             print('BFS work time:', endTime - startTime)
             print('path:', queue)
             return reconstructPath(visited, p[0], p[1])
-
-        # print(maze[p[0]][p[1]])
 
         for item in range(4):
             # using the direction array
@@ -107,11 +108,7 @@ def findPathDFS(maze, startx, starty, endx, endy):
     endy = int(endy)
 
     allpath = []
-
     queue = []
-    # queue.append((startx,starty))
-    envhight = len(grid)
-    envwidth = len(grid[0])
 
     visited = []
     for i in range(len(maze)):
@@ -150,3 +147,127 @@ def go_to(startx, starty, endx, endy, visited, queue, allpath):
     queue.pop()
     return
 
+
+class Node:
+    def __init__(self, x, y, bNode=None):
+        self.X = x
+        self.Y = y
+        self.Node = bNode
+
+    def name(self, b):
+        if self.Node != None:
+            b.append(self.Node)
+            print(self.X, " ", self.Y)
+            return self.name(b)
+        else:
+            return b
+
+
+def randomizeWeights(field):
+    newField = []
+    visitedFieldBig = []
+    r = random
+
+    for i in range(len(field) * 2 - 1):
+        row = []
+        clearRow = []
+        for j in range(len(field[0]) * 2 - 1):
+            if (i % 2 == 0) and (j % 2 == 0):
+                row.append(field[int(i / 2)][int(j / 2)])
+                if (field[int(i / 2)][int(j / 2)] == 1):
+                    clearRow.append(0)
+                else:
+                    clearRow.append(1)
+            elif (i % 2 != 0) and (j % 2 != 0):
+                row.append(0)
+                clearRow.append(1)
+            else:
+                row.append(random.randint(4, 9))
+                clearRow.append(0)
+        newField.append(row)
+        visitedFieldBig.append(clearRow)
+
+    return newField, visitedFieldBig
+
+
+def reconstructPathForUCS(node):
+    queue = []
+    while (node != None):
+        queue.append((node.X / 2, node.Y / 2))
+        node = node.Node
+    return queue
+
+
+def UCS(maze, startX, startY, endX, endY):
+    startX = int(startX) * 2
+    startY = int(startY) * 2
+    endX = int(endX) * 2
+    endY = int(endY) * 2
+
+    # list of Nodes (with coordinates)
+    nodesList = []
+    # Nodes weights
+    nodesWeightsList = []
+
+    nodesList.append(Node(startX, startY, None))
+    nodesWeightsList.append(0)
+
+    # randomize weights for fields
+    field, visited = randomizeWeights(maze)
+
+    startNode = None
+
+    while len(nodesList) > 0:
+        minIndex = nodesWeightsList.index(min(nodesWeightsList))
+        node = nodesList[minIndex]
+        weightNode = nodesWeightsList[minIndex]
+        nodesWeightsList[minIndex] = sys.maxsize
+
+        startNode = Node(node.X, node.Y, startNode)
+        visited[node.X][node.Y] = 1
+
+        # if we find endpoint
+        if node.X == endX and node.Y == endY:
+            return reconstructPathForUCS(node)
+
+        tempArray = []
+        tempWeightIndexesArray = []
+        if node.X - 2 >= 0 and visited[node.X - 2][node.Y] != 1:
+            tempArray.append(Node(node.X - 2, node.Y, node))
+            asd = field[node.X - 1][node.Y]
+            tempWeightIndexesArray.append(weightNode + field[node.X - 1][node.Y])
+        if node.Y - 2 >= 0 and visited[node.X][node.Y - 2] != 1:
+            tempArray.append(Node(node.X, node.Y - 2, node))
+            asd = field[node.X][node.Y - 1]
+            tempWeightIndexesArray.append(weightNode + field[node.X][node.Y - 1])
+        if node.X + 2 < len(field) and visited[node.X + 2][node.Y] != 1:
+            tempArray.append(Node(node.X + 2, node.Y, node))
+            asd = field[node.X + 1][node.Y]
+            tempWeightIndexesArray.append(weightNode + field[node.X + 1][node.Y])
+        if node.Y + 2 < len(field[0]) and visited[node.X][node.Y + 2] != 1:
+            tempArray.append(Node(node.X, node.Y + 2, node))
+            asd = field[node.X][node.Y + 1]
+            tempWeightIndexesArray.append(weightNode + field[node.X][node.Y + 1])
+
+        while len(tempArray) > 0:
+            tempNode = tempArray.pop()
+            nodesList.append(tempNode)
+            nodesWeightsList.append(tempWeightIndexesArray.pop())
+
+    # back to normal array
+    a = []
+    for item in nodesList:
+        hehe = nodesList.pop()
+        a.append((int(hehe[0] / 2), int(hehe[1] / 2)))
+    queue = a
+    print(queue)
+    print(nodesWeightsList)
+    for i in range(len(field) - 1):
+        if i % 2 == 0:
+            print()
+            for j in range(len(field[0]) - 1):
+                if j % 2 == 0:
+                    print(field[i][j], end='')
+
+    for i in range(len(visited)):
+        print(visited[i])

@@ -11,7 +11,7 @@ YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (51, 51, 255)
-
+goal = []
 
 # dotArr = []
 
@@ -22,6 +22,7 @@ BLUE = (51, 51, 255)
 #         self.xEnd = xEnd
 #         self.yEnd = yEnd
 #         self.weight = weight
+dotsCoordinates = []
 
 
 class Game(object):
@@ -49,6 +50,7 @@ class Game(object):
         for i, row in enumerate(grid):
             for j, item in enumerate(row):
                 if item != 0:
+                    dotsCoordinates.append((j, i));
                     self.dots_group.add(Ellipse(j * 32 + 12, i * 32 + 12, YELLOW, 8, 8))
 
     def input_handler(self):
@@ -121,5 +123,12 @@ class Game(object):
         #     pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))
         # pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
         # pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
+
+        ucsPath = UCS(grid, 2, 0, 12, 10) # каждый раз считается новая масса от того и меняется маргрут
+        for item in ucsPath:
+            pygame.draw.rect(screen, BLUE, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
+            pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
+            pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
+
         # update screen
         pygame.display.flip()
