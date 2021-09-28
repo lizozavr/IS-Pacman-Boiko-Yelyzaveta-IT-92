@@ -24,7 +24,8 @@ def findPathBFS(maze, startx, starty, endx, endy):
     for i in range(len(maze)):
         visited.append([])
         for j in range(len(maze[i])):
-            if (maze[i][j] != 0):
+            if maze[i][j] != 0:
+                # unvisited dots
                 visited[-1].append(0)
             else:
                 visited[-1].append(True)
@@ -37,25 +38,26 @@ def findPathBFS(maze, startx, starty, endx, endy):
         p = queue[0]
         queue.pop(0)
 
-        if (p[0] == endx and p[1] == endy):
+        if p[0] == endx and p[1] == endy:
             endTime = datetime.now()
             print('BFS work time:', endTime - startTime)
             print('path:', queue)
             return reconstructPath(visited, p[0], p[1])
 
+        # Look at all 4 directions and add them to the queue
         for item in range(4):
             # using the direction array
             a = p[0] + Dir[item][0]
             b = p[1] + Dir[item][1]
 
             # not blocked and valid
-            if (a >= 0 and b >= 0 and a < envhight and b < envwidth and visited[a][b] == 0 and visited[a][b] != True):
+            if a >= 0 and b >= 0 and a < envhight and b < envwidth and visited[a][b] == 0 and visited[a][b] != True:
                 visited[a][b] = weight + 1
                 queue.append((a, b))
                 newCount += 1
 
         oldcount -= 1
-        if (oldcount <= 0):
+        if oldcount <= 0:
             oldcount = newCount
             newCount = 0
             weight += 1
@@ -63,6 +65,7 @@ def findPathBFS(maze, startx, starty, endx, endy):
     return queue
 
 
+# reconstruct path for DFS algorithm
 def reconstructPath(maze, x, y):
     stop = True
     envhight = len(maze)
@@ -119,6 +122,7 @@ def findPathDFS(maze, startx, starty, endx, endy):
             else:
                 visited[-1].append(1)
 
+    # Recursion func
     go_to(startx, starty, endx, endy, visited, queue, allpath)
     endTime = datetime.now()
     print('DFS work time:', endTime - startTime)
@@ -134,8 +138,8 @@ def go_to(startx, starty, endx, endy, visited, queue, allpath):
         return
     queue.append((startx, starty))
     visited[startx][starty] = 2
+    # if we've found goal point
     if (startx, starty) == (endx, endy):
-        # print("Found!", queue)
         allpath.append(queue.copy())
         queue.pop()
         return
@@ -174,7 +178,9 @@ def randomizeWeights(field):
         for j in range(len(field[0]) * 2 - 1):
             if (i % 2 == 0) and (j % 2 == 0):
                 row.append(field[int(i / 2)][int(j / 2)])
-                if (field[int(i / 2)][int(j / 2)] == 1):
+                if field[int(i / 2)][int(j / 2)] == 1:
+                    clearRow.append(0)
+                elif field[int(i / 2)][int(j / 2)] == 2:
                     clearRow.append(0)
                 else:
                     clearRow.append(1)
@@ -192,7 +198,7 @@ def randomizeWeights(field):
 
 def reconstructPathForUCS(node):
     queue = []
-    while (node != None):
+    while node != None:
         queue.append((node.X / 2, node.Y / 2))
         node = node.Node
     return queue
@@ -217,6 +223,7 @@ def UCS(maze, startX, startY, endX, endY):
 
     startNode = None
 
+    startTime = datetime.now()
     while len(nodesList) > 0:
         minIndex = nodesWeightsList.index(min(nodesWeightsList))
         node = nodesList[minIndex]
@@ -228,10 +235,14 @@ def UCS(maze, startX, startY, endX, endY):
 
         # if we find endpoint
         if node.X == endX and node.Y == endY:
+            endTime = datetime.now()
+            print('UCS work time:', endTime - startTime)
+            print('Path:', reconstructPathForUCS(node))
             return reconstructPathForUCS(node)
 
         tempArray = []
         tempWeightIndexesArray = []
+        # check all 4 directions
         if node.X - 2 >= 0 and visited[node.X - 2][node.Y] != 1:
             tempArray.append(Node(node.X - 2, node.Y, node))
             asd = field[node.X - 1][node.Y]
@@ -248,6 +259,95 @@ def UCS(maze, startX, startY, endX, endY):
             tempArray.append(Node(node.X, node.Y + 2, node))
             asd = field[node.X][node.Y + 1]
             tempWeightIndexesArray.append(weightNode + field[node.X][node.Y + 1])
+
+        # collect found dots from all directions to lists
+        while len(tempArray) > 0:
+            tempNode = tempArray.pop()
+            nodesList.append(tempNode)
+            nodesWeightsList.append(tempWeightIndexesArray.pop())
+
+
+# Мангетенський шлях
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+# Субоптимальна евристика
+def euclidean(a, b):
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+
+# Жадібна евристика
+def euclideanSquared(a, b):
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+
+
+def Astar(maze, startX, startY, endX, endY, heuristic):
+    startX = int(startX) * 2
+    startY = int(startY) * 2
+    endX = int(endX) * 2
+    endY = int(endY) * 2
+
+    # list of Nodes (with coordinates)
+    nodesList = []
+    # Nodes weights
+    nodesWeightsList = []
+
+    nodesList.append(Node(startX, startY, None))
+    nodesWeightsList.append(0)
+
+    # randomize weights for fields
+    field, visited = randomizeWeights(maze)
+
+    startTime = datetime.now()
+    startNode = None
+    # nodeList = []
+    # nodeList.append(startNode)
+
+    while len(nodesList) > 0:
+        minIndex = nodesWeightsList.index(min(nodesWeightsList))
+        node = nodesList[minIndex]
+        weightNode = nodesWeightsList[minIndex]
+        field[node.X][node.Y] = weightNode
+        nodesWeightsList[minIndex] = sys.maxsize
+
+        startNode = Node(node.X, node.Y, startNode)
+        visited[node.X][node.Y] = 1
+
+        # startNode = Node(pathNode.X,pathNode.Y,pathNode.Node)
+        # nodeList.append(startNode)
+
+        # if we find endpoint
+        if node.X == endX and node.Y == endY:
+            endTime = datetime.now()
+            print('time of work Astar:', endTime - startTime)
+
+            queue = reconstructPathForUCS(node)
+            print('path:', queue)
+            return queue, field
+
+        tempArray = []
+        tempWeightIndexesArray = []
+        if node.X - 2 >= 0 and visited[node.X - 2][node.Y] != 1:
+            tempArray.append(Node(node.X - 2, node.Y, node))
+            asd = field[node.X - 1][node.Y]
+            tempWeightIndexesArray.append(
+                weightNode + field[node.X - 1][node.Y] + heuristic((node.X - 1, node.Y), (endX, endY)))
+        if node.Y - 2 >= 0 and visited[node.X][node.Y - 2] != 1:
+            tempArray.append(Node(node.X, node.Y - 2, node))
+            asd = field[node.X][node.Y - 1]
+            tempWeightIndexesArray.append(
+                weightNode + field[node.X][node.Y - 1] + heuristic((node.X, node.Y - 1), (endX, endY)))
+        if node.X + 2 < len(field) and visited[node.X + 2][node.Y] != 1:
+            tempArray.append(Node(node.X + 2, node.Y, node))
+            asd = field[node.X + 1][node.Y]
+            tempWeightIndexesArray.append(
+                weightNode + field[node.X + 1][node.Y] + heuristic((node.X + 1, node.Y), (endX, endY)))
+        if node.Y + 2 < len(field[0]) and visited[node.X][node.Y + 2] != 1:
+            tempArray.append(Node(node.X, node.Y + 2, node))
+            asd = field[node.X][node.Y + 1]
+            tempWeightIndexesArray.append(
+                weightNode + field[node.X][node.Y + 1] + heuristic((node.X, node.Y + 1), (endX, endY)))
 
         while len(tempArray) > 0:
             tempNode = tempArray.pop()
@@ -271,3 +371,18 @@ def UCS(maze, startX, startY, endX, endY):
 
     for i in range(len(visited)):
         print(visited[i])
+
+
+def buildPathThrowDots(dots):
+    lastDot = dots[len(dots) - 1]
+    fullPath = []
+    for item in range(len(dots) - 1):
+        aStarPath, field = Astar(grid, dots[item][0], dots[item][1], dots[item + 1][0], dots[item + 1][1], heuristic)
+        aStarPath.reverse()
+        fullPath.append(aStarPath)
+    path = []
+    for row in fullPath:
+        for item in row:
+            path.append(item)
+    return path
+
