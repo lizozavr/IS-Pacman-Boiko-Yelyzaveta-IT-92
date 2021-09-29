@@ -133,14 +133,14 @@ class Game(object):
         #     pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
         #     pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
         #     pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
-
-        # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], heuristic)
+        #
+        aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], heuristic)
         # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], euclidean)
         # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], euclideanSquared)
-        # for item in aStarPath:
-        #     pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(startPoint[1] * 32 + 9, startPoint[0] * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(endPoint[1] * 32 + 9, endPoint[0] * 32 + 9, 16, 16))
+        for item in aStarPath:
+            pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
+        pygame.draw.rect(screen, RED, pygame.Rect(startPoint[1] * 32 + 9, startPoint[0] * 32 + 9, 16, 16))
+        pygame.draw.rect(screen, RED, pygame.Rect(endPoint[1] * 32 + 9, endPoint[0] * 32 + 9, 16, 16))
 
         # 4 dots
         # dotsListToFindPath = []
@@ -156,12 +156,12 @@ class Game(object):
         #     pygame.draw.rect(screen, RED, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
 
         # All dots
-        dotsListToFindPathThrowAllDots = []
-        dotsListToFindPathThrowAllDots.append(self.pacmanCoor)
-        dotsListToFindPathThrowAllDots.append(self.randomDot)
-        result = buildPathThrowDots(dotsCoordinates)
-        for item in result:
-            pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
+        # dotsListToFindPathThrowAllDots = []
+        # dotsListToFindPathThrowAllDots.append(self.pacmanCoor)
+        # dotsListToFindPathThrowAllDots.append(self.randomDot)
+        # result = buildPathThrowDots(dotsCoordinates)
+        # for item in result:
+        #     pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
 
         # update screen
         pygame.display.flip()

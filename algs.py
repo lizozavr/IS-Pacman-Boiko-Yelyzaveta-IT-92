@@ -267,17 +267,14 @@ def UCS(maze, startX, startY, endX, endY):
             nodesWeightsList.append(tempWeightIndexesArray.pop())
 
 
-# Мангетенський шлях
 def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-# Субоптимальна евристика
 def euclidean(a, b):
     return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
 
 
-# Жадібна евристика
 def euclideanSquared(a, b):
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
@@ -301,8 +298,6 @@ def Astar(maze, startX, startY, endX, endY, heuristic):
 
     startTime = datetime.now()
     startNode = None
-    # nodeList = []
-    # nodeList.append(startNode)
 
     while len(nodesList) > 0:
         minIndex = nodesWeightsList.index(min(nodesWeightsList))
@@ -314,16 +309,13 @@ def Astar(maze, startX, startY, endX, endY, heuristic):
         startNode = Node(node.X, node.Y, startNode)
         visited[node.X][node.Y] = 1
 
-        # startNode = Node(pathNode.X,pathNode.Y,pathNode.Node)
-        # nodeList.append(startNode)
-
         # if we find endpoint
         if node.X == endX and node.Y == endY:
             endTime = datetime.now()
-            print('time of work Astar:', endTime - startTime)
+            print('Astar work time:', endTime - startTime)
 
             queue = reconstructPathForUCS(node)
-            print('path:', queue)
+            print('Path:', queue)
             return queue, field
 
         tempArray = []
@@ -374,7 +366,6 @@ def Astar(maze, startX, startY, endX, endY, heuristic):
 
 
 def buildPathThrowDots(dots):
-    lastDot = dots[len(dots) - 1]
     fullPath = []
     for item in range(len(dots) - 1):
         aStarPath, field = Astar(grid, dots[item][0], dots[item][1], dots[item + 1][0], dots[item + 1][1], heuristic)
@@ -385,4 +376,3 @@ def buildPathThrowDots(dots):
         for item in row:
             path.append(item)
     return path
-
