@@ -12,9 +12,9 @@ class Player(pygame.sprite.Sprite):
     change_x = 0
     change_y = 0
     explosion = False
-    game_over = False
+    gameOver = False
 
-    def __init__(self, x, y, filename):
+    def __init__(self, x, y, filename, computerControlled = False):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(filename).convert()
         self.image.set_colorkey(BLACK)
@@ -33,17 +33,19 @@ class Player(pygame.sprite.Sprite):
         # Save the player image
         self.player_image = pygame.image.load(filename).convert()
         self.player_image.set_colorkey(BLACK)
+        self.computerControlled = computerControlled
+        self.isPlayingByComputer = True
 
-    def update(self, blocked_blocks):
+    def update(self, blockedBlocks):
         if not self.explosion:
             # This will stop the user when he touch the block
-            for block in pygame.sprite.spritecollide(self, blocked_blocks, False):
+            for block in pygame.sprite.spritecollide(self, blockedBlocks, False):
                 self.rect.x -= (block.rect.x - self.rect.x) * 0.1
                 self.rect.y -= (block.rect.y - self.rect.y) * 0.1
                 self.change_x = 0
                 self.change_y = 0
 
-            # This will stop the user when he tries to go outside 
+            # This will stop the user when he tries to go outside
             if self.rect.right < 32:
                 self.rect.x -= (self.rect.x) * 0.1
                 self.change_x = 0
@@ -80,21 +82,42 @@ class Player(pygame.sprite.Sprite):
         else:
             if self.explosion_animation.index == self.explosion_animation.get_length() - 1:
                 pygame.time.wait(500)
-                self.game_over = True
+                self.gameOver = True
             self.explosion_animation.update(12)
             self.image = self.explosion_animation.get_current_image()
 
+    def goTo(self, point):
+        x = ((self.rect.x) / 32)
+        y = ((self.rect.y) / 32)
+
+        if (point.Y) == x and (point.X) == y:
+            self.change_x = 0
+            self.change_y = 0
+            self.isPlayingByComputer = False
+        if abs(x - point.Y) == 0:
+            self.change_x = 0
+            if y - point.X < 0:
+                self.move_down()
+            if y - point.X > 0:
+                self.move_up()
+        if y - point.X == 0:
+            self.change_y = 0
+            if x - point.Y < 0:
+                self.move_right()
+            if x - point.Y > 0:
+                self.move_left()
+
     def move_right(self):
-        self.change_x = 3
+        self.change_x = 2
 
     def move_left(self):
-        self.change_x = -3
+        self.change_x = -2
 
     def move_up(self):
-        self.change_y = -3
+        self.change_y = -2
 
     def move_down(self):
-        self.change_y = 3
+        self.change_y = 2
 
     def stop_move_right(self):
         if self.change_x != 0:

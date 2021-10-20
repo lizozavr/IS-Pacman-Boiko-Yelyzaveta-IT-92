@@ -25,7 +25,7 @@ def main():
         # draw frame
         game.display_frame(screen)
         # 30 frames per second
-        clock.tick(30)
+        clock.tick(1000)
     pygame.quit()
 
 

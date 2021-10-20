@@ -1,11 +1,11 @@
-from algs import Astar
+import csv
+from datetime import datetime
 from player import Player
 from objects import *
-from algs import *
 import random
 
-SCREEN_WIDTH = 608
-SCREEN_HEIGHT = 544
+SCREENWIDTH = 608
+SCREENHEIGHT = 544
 
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
@@ -14,11 +14,14 @@ RED = (255, 0, 0)
 BLUE = (51, 51, 255)
 dotsCoordinates = []
 secure_random = random.SystemRandom()
-
+global alg_name
 
 
 class Game(object):
+    hasWon = False
+
     def __init__(self):
+        self.startTime = datetime.now()
         self.font = pygame.font.Font(None, 40)
         # Create the player
         self.player = Player(32, 128, "pictures/player.png")
@@ -26,6 +29,7 @@ class Game(object):
         self.blocks_group = pygame.sprite.Group()
         # Create a group for the food
         self.dots_group = pygame.sprite.Group()
+        self.score = 0
 
         for i, row in enumerate(grid):
             for j, item in enumerate(row):
@@ -34,10 +38,10 @@ class Game(object):
 
         # Create the ghosts
         self.enemies = pygame.sprite.Group()
-        self.enemies.add(Ghost(224, 224))
-        self.enemies.add(Ghost(256, 224))
-        self.enemies.add(Ghost(288, 224))
-        self.enemies.add(Ghost(256, 192))
+        # self.enemies.add(Ghost(224, 224))
+        # self.enemies.add(Ghost(256, 224))
+        # self.enemies.add(Ghost(288, 224))
+        # self.enemies.add(Ghost(256, 192))
         # Add the food
         for i, row in enumerate(grid):
             for j, item in enumerate(row):
@@ -46,32 +50,55 @@ class Game(object):
                     dotsCoordinates.append((i, j))
         self.startPoint = secure_random.choice(dotsCoordinates)
         self.endPoint = secure_random.choice(dotsCoordinates)
-        self.dot1 = secure_random.choice(dotsCoordinates)
-        self.dot2 = secure_random.choice(dotsCoordinates)
-        self.dot3 = secure_random.choice(dotsCoordinates)
-        self.dot4 = secure_random.choice(dotsCoordinates)
-        self.pacmanCoor = secure_random.choice(dotsCoordinates)
-        self.randomDot = secure_random.choice(dotsCoordinates)
-        self.player = Player(self.pacmanCoor[0]*32, self.pacmanCoor[1]*32, "pictures/player.png")
+        # self.dot1 = secure_random.choice(dotsCoordinates)
+        # self.dot2 = secure_random.choice(dotsCoordinates)
+        # self.dot3 = secure_random.choice(dotsCoordinates)
+        # self.dot4 = secure_random.choice(dotsCoordinates)
+        # self.pacmanCoor = secure_random.choice(dotsCoordinates)
+        # self.randomDot = secure_random.choice(dotsCoordinates)
+        # self.player = Player(self.pacmanCoor[0] * 32, self.pacmanCoor[1] * 32, "pictures/player.png")
+
+        # Add objects to the field
+        for i, row in enumerate(grid):
+            for j, item in enumerate(row):
+                if item == 2:
+                    self.player = Player(j * 32, i * 32, "pictures/player.png", True)
+                if item == 3:
+                    self.enemies.add(Ghost(j * 32, i * 32, 0))
+                if item == 4:
+                    self.enemies.add(Ghost(j * 32, i * 32, 1))
+
+        self.rand_move_enemies = []
+        self.direc_move_enemies = []
+
+        for e in self.enemies:
+            if e.type == 0:
+                self.rand_move_enemies.append(e)
+            else:
+                self.direc_move_enemies.append(e)
+
+        self.PointToGoPlayer = algs.minimax(grid, self.player, self.enemies, self.dots_group)
 
     def input_handler(self):
-        if self.game_over == True:
+        if self.game_over:
             return True
         # User did something
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
+
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    self.player.move_right()
-                elif event.key == pygame.K_LEFT:
-                    self.player.move_left()
-                elif event.key == pygame.K_UP:
-                    self.player.move_up()
-                elif event.key == pygame.K_DOWN:
-                    self.player.move_down()
-                elif event.key == pygame.K_ESCAPE:
-                    self.game_over = True
+                if not self.player.computerControlled:
+                    if event.key == pygame.K_RIGHT:
+                        self.player.move_right()
+                    elif event.key == pygame.K_LEFT:
+                        self.player.move_left()
+                    elif event.key == pygame.K_UP:
+                        self.player.move_up()
+                    elif event.key == pygame.K_DOWN:
+                        self.player.move_down()
+                if event.key == pygame.K_ESCAPE:
+                    self.gameOver = True
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
@@ -83,22 +110,50 @@ class Game(object):
                 elif event.key == pygame.K_DOWN:
                     self.player.stop_move_down()
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.player.explosion = True
-
         return False
 
     def logic(self):
         if not self.game_over:
             self.player.update(self.blocks_group)
-            # detecting collide with ghost or food
-            block_hit_list = pygame.sprite.spritecollide(self.player, self.dots_group, True)
-            block_hit_list = pygame.sprite.spritecollide(self.player, self.enemies, False)
-            if len(block_hit_list) > 0:
+
+            # Finding collides with ghost or food
+            dotsHitList = pygame.sprite.spritecollide(self.player, self.dots_group, True)
+            blockHitList = pygame.sprite.spritecollide(self.player, self.enemies, False)
+            if len(blockHitList) > 0:
                 self.player.explosion = True
             if len(self.dots_group) == 0:
                 self.player.explosion = True
-            self.game_over = self.player.game_over
+                self.hasWon = True
+            if len(dotsHitList) > 0:
+                self.score += 1
+            self.game_over = self.player.gameOver
+
+            random_occure_place = random.randint(0, len(dotsCoordinates))
+
+            for ghost in self.rand_move_enemies:
+                rp = ghost.prevPoint
+                if len(ghost.path) == 0:
+                    for i, row in enumerate(grid):
+                        for j, item in enumerate(row):
+                            if random_occure_place != 0:
+                                random_occure_place = random_occure_place - 1
+                                rp = (j, i)
+                ghost.update(rp)
+
+            for ghost in self.direc_move_enemies:
+                rp = ((self.player.rect.bottomright[1] - 16) / 32, (self.player.rect.bottomright[0] - 16) / 32)
+                ghost.update(rp)
+
+            if self.player.computerControlled:
+                if not self.player.isPlayingByComputer:
+                    self.PointToGoPlayer = algs.minimax(grid, self.player, self.enemies, self.dots_group)
+                    self.player.isPlayingByComputer = True
+                self.player.goTo(self.PointToGoPlayer)
+        else:
+            data = [alg_name, self.hasWon, datetime.now() - self.startTime, self.score]
+            with open('results.csv', 'a', encoding='UTF8') as file:
+                writer = csv.writer(file)
+                writer.writerow(data)
 
     def display_frame(self, screen):
         # clear screen from previous frame
@@ -117,31 +172,14 @@ class Game(object):
         endPoint = self.endPoint
 
         # dfsPath = findPathDFS(grid, 2, 0, 12, 10)
-        # for p in dfsPath:
-        #     pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
-        #
         # bfsPath = findPathBFS(grid, 2, 0, 12, 10)
-        # for p in bfsPath:
-        #     pygame.draw.rect(screen, GREEN, pygame.Rect(p[1] * 32 + 9, p[0] * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
-        # pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
-        #
         # ucsPath = UCS(grid, 2, 0, 12, 10) # каждый раз считается новая масса от того и меняется маргрут
         # for item in ucsPath:
         #     pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
         #     pygame.draw.rect(screen, RED, pygame.Rect(0 * 32 + 9, 2 * 32 + 9, 16, 16))
         #     pygame.draw.rect(screen, RED, pygame.Rect(10 * 32 + 9, 12 * 32 + 9, 16, 16))
         #
-        aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], heuristic)
-        # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], euclidean)
-        # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], euclideanSquared)
-        for item in aStarPath:
-            pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
-        pygame.draw.rect(screen, RED, pygame.Rect(startPoint[1] * 32 + 9, startPoint[0] * 32 + 9, 16, 16))
-        pygame.draw.rect(screen, RED, pygame.Rect(endPoint[1] * 32 + 9, endPoint[0] * 32 + 9, 16, 16))
-
+        # aStarPath, field = Astar(grid, startPoint[0], startPoint[1], endPoint[0], endPoint[1], heuristic)
         # 4 dots
         # dotsListToFindPath = []
         # dotsListToFindPath.append(self.pacmanCoor)
@@ -154,7 +192,6 @@ class Game(object):
         #     pygame.draw.rect(screen, GREEN, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
         # for item in dotsListToFindPath:
         #     pygame.draw.rect(screen, RED, pygame.Rect(item[1] * 32 + 9, item[0] * 32 + 9, 16, 16))
-
         # All dots
         # dotsListToFindPathThrowAllDots = []
         # dotsListToFindPathThrowAllDots.append(self.pacmanCoor)

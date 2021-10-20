@@ -1,4 +1,6 @@
 import pygame
+
+import game
 from objects import *
 from datetime import datetime
 import sys
@@ -6,8 +8,8 @@ from game import *
 import random
 
 
-def findPathBFS(maze, startx, starty, endx, endy):
-    startTime = datetime.now()
+def findPathBFS(grid, startx, starty, endx, endy):
+    # startTime = datetime.now()
     startx = int(startx)
     starty = int(starty)
     endx = int(endx)
@@ -15,23 +17,22 @@ def findPathBFS(maze, startx, starty, endx, endy):
 
     queue = []
     queue.append((startx, starty))
-    envhight = len(grid)
+    envheight = len(grid)
     envwidth = len(grid[0])
     Dir = [[-1, 0], [0, -1], [1, 0], [0, 1]]
     weight = 1
 
     visited = []
-    for i in range(len(maze)):
+    for i in range(len(grid)):
         visited.append([])
-        for j in range(len(maze[i])):
-            if maze[i][j] != 0:
-                # unvisited dots
+        for j in range(len(grid[i])):
+            if grid[i][j] != 0:
                 visited[-1].append(0)
             else:
                 visited[-1].append(True)
 
     visited[startx][starty] = 1
-    oldcount = 1
+    oldCount = 1
     newCount = 0
     while len(queue) > 0:
 
@@ -39,72 +40,133 @@ def findPathBFS(maze, startx, starty, endx, endy):
         queue.pop(0)
 
         if p[0] == endx and p[1] == endy:
-            endTime = datetime.now()
-            print('BFS work time:', endTime - startTime)
-            print('path:', queue)
-            return reconstructPath(visited, p[0], p[1])
+            # endTime = datetime.now()
+            queue = reconstructPath(visited, p[0], p[1])
+            # print('time of work BFS:', endTime - startTime)
+            # print('path:', queue)
+            return queue
 
-        # Look at all 4 directions and add them to the queue
         for item in range(4):
             # using the direction array
             a = p[0] + Dir[item][0]
             b = p[1] + Dir[item][1]
 
             # not blocked and valid
-            if a >= 0 and b >= 0 and a < envhight and b < envwidth and visited[a][b] == 0 and visited[a][b] != True:
+            if a >= 0 and b >= 0 and a < envheight and b < envwidth and visited[a][b] == 0 and visited[a][b] != True:
                 visited[a][b] = weight + 1
                 queue.append((a, b))
                 newCount += 1
 
-        oldcount -= 1
-        if oldcount <= 0:
-            oldcount = newCount
+        oldCount -= 1
+        if oldCount <= 0:
+            oldCount = newCount
             newCount = 0
             weight += 1
 
     return queue
 
 
-# reconstruct path for DFS algorithm
-def reconstructPath(maze, x, y):
-    stop = True
-    envhight = len(maze)
-    envwidth = len(maze[0])
-    Dir = [[-1, 0], [0, -1], [1, 0], [0, 1]]
+def findPathBFSNearestPoint(grid, startx, starty, Food):
+    startx = int(startx)
+    starty = int(starty)
+
+    ListWithCords = []
+
+    for item in Food:
+        ListWithCords.append(((item.rect.x - 12) / 32, (item.rect.y - 12) / 32))
+
     queue = []
-    queue.append((x, y))
+    queue.append((startx, starty))
+    envHight = len(grid)
+    envWidth = len(grid[0])
+    Dir = [[-1, 0], [0, -1], [1, 0], [0, 1]]
+    weight = 1
 
-    newArr = []
-    for i in range(len(maze)):
-        newArr.append([])
-        for j in range(len(maze[i])):
-            if (maze[i][j] == True):
-                newArr[-1].append(0)
+    visited = []
+    for i in range(len(grid)):
+        visited.append([])
+        for j in range(len(grid[i])):
+            if (grid[i][j] != 0):
+                visited[-1].append(0)
             else:
-                newArr[-1].append(maze[i][j])
+                visited[-1].append(True)
 
-    maze = newArr
+    visited[startx][starty] = 1
+    oldCount = 1
+    newCount = 0
+    while len(queue) > 0:
 
-    while stop:
-        p = queue[len(queue) - 1]
+        p = queue[0]
+        queue.pop(0)
+
+        if (p[1], p[0]) in ListWithCords:
+            return p[1], p[0]
+
         for item in range(4):
             # using the direction array
             a = p[0] + Dir[item][0]
             b = p[1] + Dir[item][1]
 
             # not blocked and valid
-            if (a >= 0 and b >= 0 and a < envhight and b < envwidth and maze[a][b] != 0 and maze[a][b] < maze[p[0]][
-                p[1]]):
+            if a >= 0 and b >= 0 and a < envHight and b < envWidth and visited[a][b] == 0 and visited[a][b] != True:
+                visited[a][b] = weight + 1
                 queue.append((a, b))
-                # print(maze[a][b])
-                break
-        if (maze[p[0]][p[1]] == 2):
-            stop = False
-    return (queue)
+                newCount += 1
+
+        oldCount -= 1
+        if (oldCount <= 0):
+            oldCount = newCount
+            newCount = 0
+            weight += 1
+
+    return queue
 
 
-def findPathDFS(maze, startx, starty, endx, endy):
-    startTime = datetime.now()
+# Reconstruct path for DFS algorithm
+def reconstructPath(grid, x, y):
+    stop = True
+    envhight = len(grid)
+    envwidth = len(grid[0])
+    Dir = [[-1, 0], [0, -1], [1, 0], [0, 1]]
+    queue = []
+    queue.append((x, y))
+
+    valid = False
+    newArr = []
+    for i in range(len(grid)):
+        newArr.append([])
+        for j in range(len(grid[i])):
+            if (grid[i][j] == True):
+                newArr[-1].append(0)
+            else:
+                newArr[-1].append(grid[i][j])
+            if grid[i][j] == 2:
+                valid = True
+
+    grid = newArr
+
+    if valid:
+        while stop:
+            p = queue[len(queue) - 1]
+            for item in range(4):
+                # using the direction array
+                a = p[0] + Dir[item][0]
+                b = p[1] + Dir[item][1]
+
+                # not blocked and valid
+                if a >= 0 and b >= 0 and a < envhight and b < envwidth and grid[a][b] > 0 and grid[a][b] < grid[p[0]][
+                    p[1]]:
+                    queue.append((a, b))
+                    break
+            if grid[p[0]][p[1]] == 2:
+                stop = False
+        return queue
+    else:
+        return queue
+
+
+def findPathDFS(grid, startx, starty, endx, endy):
+    # startTime = datetime.now()
     startx = int(startx)
     starty = int(starty)
     endx = int(endx)
@@ -114,20 +176,21 @@ def findPathDFS(maze, startx, starty, endx, endy):
     queue = []
 
     visited = []
-    for i in range(len(maze)):
+    for i in range(len(grid)):
         visited.append([])
-        for j in range(len(maze[i])):
-            if (maze[i][j] != 0):
+        for j in range(len(grid[i])):
+            if (grid[i][j] != 0):
                 visited[-1].append(0)
             else:
                 visited[-1].append(1)
 
     # Recursion func
     go_to(startx, starty, endx, endy, visited, queue, allpath)
-    endTime = datetime.now()
-    print('DFS work time:', endTime - startTime)
-    print('path:', allpath[0])
-    return allpath[0]
+    # endTime = datetime.now()
+    # print('DFS work time:', endTime - startTime)
+    # print('path:', allpath[0])
+    if len(allpath) > 0:
+        return allpath[0]
 
 
 def go_to(startx, starty, endx, endy, visited, queue, allpath):
@@ -267,7 +330,7 @@ def UCS(maze, startX, startY, endX, endY):
             nodesWeightsList.append(tempWeightIndexesArray.pop())
 
 
-def heuristic(a, b):
+def heuristic(b, a):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
@@ -316,7 +379,7 @@ def Astar(maze, startX, startY, endX, endY, heuristic):
 
             queue = reconstructPathForUCS(node)
             print('Path:', queue)
-            return queue, field
+            return queue
 
         tempArray = []
         tempWeightIndexesArray = []
@@ -376,3 +439,158 @@ def buildPathThrowDots(dots):
         for item in row:
             path.append(item)
     return path
+
+
+# MINIMAX
+class MinMaxNode:
+    def __init__(self, parent, x, y, isMax, Value=None):
+        self.X = x
+        self.Y = y
+        self.Parent = parent
+        self.Nodes = []
+        self.Value = Value
+        self.isMax = isMax
+        self.Allpoints = 0
+
+
+def get_nearest_point(pacman_point, list_of_points, field=None):
+    oldDist = sys.maxsize
+    cord = None
+    for item in list_of_points:
+        newDist = euclideanSquared((int(pacman_point[0]), int(pacman_point[1])),
+                                   (((item.rect.y - 12) / 32), (item.rect.x - 12) / 32))
+        if newDist <= oldDist:
+            oldDist = newDist
+            cord = item
+    nearest = (((cord.rect.y - 12) / 32), (cord.rect.x - 12) / 32)
+    return nearest
+
+
+def get_cords_around_field(field, x, y):
+    x = int(x)
+    y = int(y)
+    envheight = len(field)
+    envwidth = len(field[0])
+
+    cords = []
+
+    if x + 1 < envheight and field[x + 1][y] > 0:
+        cords.append((x + 1, y))
+    if x - 1 >= 0 and field[x - 1][y] > 0:
+        cords.append((x - 1, y))
+    if y + 1 < envwidth and field[x][y + 1] > 0:
+        cords.append((x, y + 1))
+    if y - 1 >= 0 and field[x][y - 1] > 0:
+        cords.append((x, y - 1))
+
+    return cords
+
+
+def minimax(field, player, enemies, food_list):
+    game.alg_name = "Minimax"
+    player_coords = ((player.rect.bottomright[1] - 16) / 32, (player.rect.bottomright[0] - 16) / 32)
+    enemiesList = []
+    for ghost in enemies:
+        enemiesList.append(((ghost.rect.bottomright[1] - 16) / 32, (ghost.rect.bottomright[0] - 16) / 32))
+
+    playerCoordsNextList = get_cords_around_field(field, player_coords[0], player_coords[1])
+    enemiesListNextList = []
+
+    nearestEnemy = enemiesList[0]
+    for item in enemiesList:
+        if heuristic(((player_coords[0]), (player_coords[1])), (item[0], item[1])) < heuristic(
+                ((player_coords[0]), (player_coords[1])), (nearestEnemy[0], nearestEnemy[1])):
+            nearestEnemy = item
+
+    enemy_around_points = get_cords_around_field(field, nearestEnemy[0], nearestEnemy[1])
+    nearest_food = get_nearest_point((player_coords[0], player_coords[1]), food_list, field)
+
+    # Building a tree
+    sourceNode = MinMaxNode(None, None, None, True)
+    for item in playerCoordsNextList:
+        sourceNode.Nodes.append(MinMaxNode(sourceNode, item[0], item[1], False))
+
+    for playerMoves in sourceNode.Nodes:
+        for ghostMoves in enemy_around_points:
+            dis_to_ghost = euclideanSquared(((playerMoves.X), (playerMoves.Y)), (ghostMoves[0], ghostMoves[1]))
+            dis_to_food = euclideanSquared(((playerMoves.X), (playerMoves.Y)),
+                                           (nearest_food[0], nearest_food[1])) * 1000
+            if dis_to_ghost <= 1:
+                playerMoves.Nodes.append(MinMaxNode(playerMoves, ghostMoves[0], ghostMoves[1], False, -99999))
+            else:
+                # Calculate price
+                playerMoves.Nodes.append(
+                    MinMaxNode(playerMoves, ghostMoves[0], ghostMoves[1], False, dis_to_ghost - dis_to_food))
+
+    # Find min
+    for playerMoves in sourceNode.Nodes:
+        oldValue = sys.maxsize
+        for ghostMoves in playerMoves.Nodes:
+            if ghostMoves.Value < oldValue:
+                oldValue = ghostMoves.Value
+                playerMoves.Value = oldValue
+
+    # Find max
+    finishNode = -sys.maxsize
+    finishCords = None
+    for playerMoves in sourceNode.Nodes:
+        if playerMoves.Value > finishNode:
+            finishNode = playerMoves.Value
+            finishCords = playerMoves
+
+    return finishCords
+
+
+# EXPECTIMAX
+def expectimax(field, player, enemies, foodList):
+    game.alg_name = "Expectimax"
+    player_coords = ((player.rect.bottomright[1] - 16) / 32, (player.rect.bottomright[0] - 16) / 32)
+    enemiesList = []
+    for ghost in enemies:
+        enemiesList.append(((ghost.rect.bottomright[1] - 16) / 32, (ghost.rect.bottomright[0] - 16) / 32))
+
+    playerCoordsNextList = get_cords_around_field(field, player_coords[0], player_coords[1])
+    enemiesListNextList = []
+
+    nearestEnemy = enemiesList[0]
+
+    for item in enemiesList:
+        if heuristic(((player_coords[0]), (player_coords[1])), (item[0], item[1])) < heuristic(
+                ((player_coords[0]), (player_coords[1])), (nearestEnemy[0], nearestEnemy[1])):
+            nearestEnemy = item
+
+    enemyAroundPoints = get_cords_around_field(field, nearestEnemy[0], nearestEnemy[1])
+
+    nearestFood = get_nearest_point((player_coords[0], player_coords[1]), foodList, field)
+
+    sourceNode = MinMaxNode(None, None, None, True)
+    for item in playerCoordsNextList:
+        sourceNode.Nodes.append(MinMaxNode(sourceNode, item[0], item[1], False))
+
+    for playerMoves in sourceNode.Nodes:
+        for ghostMoves in enemyAroundPoints:
+            dis_to_ghost = euclideanSquared(((playerMoves.X), (playerMoves.Y)), (ghostMoves[0], ghostMoves[1]))
+            dis_to_food = euclideanSquared(((playerMoves.X), (playerMoves.Y)), (nearestFood[0], nearestFood[1])) * 100
+            if dis_to_ghost <= 1:
+                playerMoves.Nodes.append(MinMaxNode(playerMoves, ghostMoves[0], ghostMoves[1], False, -99999))
+            else:
+                playerMoves.Nodes.append(
+                    MinMaxNode(playerMoves, ghostMoves[0], ghostMoves[1], False, dis_to_ghost - dis_to_food))
+
+    # Среднее
+    for playerMoves in sourceNode.Nodes:
+        oldValue = 0
+        count = 0
+        for ghostMoves in playerMoves.Nodes:
+            oldValue += ghostMoves.Value
+            count += 1
+        playerMoves.Value = oldValue / count
+
+    finishNode = -sys.maxsize
+    finishCords = None
+    for playerMoves in sourceNode.Nodes:
+        if playerMoves.Value > finishNode:
+            finishNode = playerMoves.Value
+            finishCords = playerMoves
+
+    return finishCords
