@@ -21,11 +21,11 @@ y = np.array(stats['Score'])
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=0, shuffle=True)
 
 # Train
-lin_reg.fit(x, y)
+lin_reg.fit(x_train, y_train)
 
 # Graphic
 plt.scatter(x_train, y_train, color='wheat')
-plt.scatter(x_test, lin_reg.predict(x_test), color='red')
+plt.plot(x_test, lin_reg.predict(x_test), color='red')
 plt.scatter(x_test, y_test, color='blue')
 plt.title("Linear regression")
 plt.xlabel('Total seconds')
